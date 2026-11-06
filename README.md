@@ -25,4 +25,23 @@ kubectl auth can-i get configmap/app-config \
 
 ## Validation
 
-Filled in as the checks land.
+```sh
+make validate
+```
+
+This runs, in order:
+
+1. `kubeconform -strict` over `manifests/` (schema check, no cluster needed)
+2. `scripts/check-rbac.sh`, which rejects wildcard rules, ClusterRoleBindings
+   and any binding to `cluster-admin`
+3. `scripts/test-check-rbac.sh`, which proves the check fails on bad input
+4. `shellcheck` over `scripts/`
+
+The same target runs in CI. Needs `kubeconform` and `shellcheck` on PATH.
+
+## Caveats
+
+- `check-rbac.sh` is line-based and assumes the one-line list style used in
+  `manifests/`. It is a guard rail, not a policy engine.
+- Nothing here talks to a cluster, so `kubectl auth can-i` in the usage
+  section is a manual check.
